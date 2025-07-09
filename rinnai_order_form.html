@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>リンナイ注文書</title>
+  <style>
+    body { font-family: 'Arial', sans-serif; margin: 0; padding: 0; }
+    .page {
+      width: 794px;
+      height: 1123px;
+      margin: auto;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+    h1 { text-align: center; font-size: 28px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td {
+      border: 1px solid #000;
+      padding: 8px;
+      font-size: 16px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .header td { border: none; font-size: 20px; }
+    .footer { margin-top: 40px; font-size: 20px; }
+    .contact-info {
+      margin-top: 20px;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .paloma-info {
+      border: 2px solid #000;
+      padding: 20px;
+      font-size: 26px;
+    }
+    .kurashima-info {
+      font-size: 22px;
+      margin-top: 10px;
+    }
+    .approval-box {
+      width: 200px;
+      margin: 30px auto 0;
+    }
+    .approval-box table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .approval-box th, .approval-box td {
+      border: 1px solid #000;
+      padding: 6px 10px;
+      font-size: 16px;
+      text-align: center;
+    }
+    .info-row-combined {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      font-size: 26px;
+      font-weight: bold;
+      border: 2px solid #000;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .info-row-combined .info-label,
+    .info-row-combined .info-value {
+      padding: 10px 20px;
+      border-left: 2px solid #000;
+    }
+    .info-row-combined .info-label {
+      border-left: none;
+    }
+    .info-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .info-label, .info-value {
+      border: 2px solid #000;
+      padding: 10px 20px;
+      font-size: 24px;
+    }
+    .site-name-box {
+      border: 2px solid #000;
+      padding: 10px;
+      margin-top: 20px;
+      font-size: 24px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .action-buttons {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .action-buttons button {
+      font-size: 20px;
+      padding: 10px 20px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page" id="orderForm">
+    <h1>注　文　書</h1>
+    <table class="header">
+      <tr>
+        <td style="text-align: left;">令和 <span id="year"></span> 年 <span id="month"></span> 月 <span id="day"></span> 日　TIME：<span id="time"></span></td>
+        <td style="text-align: right;"></td>
+      </tr>
+    </table>
+
+    <div style="display: flex; justify-content: center; margin-top: 20px;">
+      <table style="border-collapse: collapse;">
+        <tr>
+          <td style="border: 2px solid #000; padding: 10px 20px; font-size: 30px; font-weight: bold;">得意先名</td>
+          <td style="border: 2px solid #000; padding: 10px 60px; font-size: 30px; font-weight: bold;">リンナイ株式会社　仙台支店　御中</td>
+        </tr>
+        <tr>
+          <td style="border: 2px solid #000; padding: 10px 20px; font-size: 30px; font-weight: bold;">得意先コード</td>
+          <td style="border: 2px solid #000; padding: 10px 60px; font-size: 30px; font-weight: bold;" id="customerCodeCell">70243902</td>
+        </tr>
+        <tr>
+          <td style="border: 2px solid #000; padding: 10px 20px; font-size: 30px; font-weight: bold;">注文者</td>
+          <td style="border: 2px solid #000; padding: 10px 60px; font-size: 30px; font-weight: bold;" id="userNameCell"></td>
+        </tr>
+      </table>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>部品コード</th>
+          <th>型式</th>
+          <th>ガス
+            <select id="gasType" onchange="updateGasType()">
+              <option value=""></option>
+              <option value="LP">LP</option>
+              <option value="都市ガス">都市ガス</option>
+            </select>
+          </th>
+          <th>数量</th>
+          <th>納期回答</th>
+        </tr>
+      </thead>
+      <tbody id="orderBody">
+        <!-- 注文データが入る -->
+      </tbody>
+    </table>
+
+    <div class="site-name-box">現場名：<span id="remarks"></span></div>
+
+    <div class="contact-info paloma-info">
+      <p>
+        仙台市若林区伊在3丁目１－２<br>
+        リンナイ株式会社 仙台支店　御中<br>
+        TEL: 022-288-2381　FAX: 022-288-2382
+      </p>
+    </div>
+
+    <div class="contact-info kurashima-info">
+      <p><strong>倉島商事株式会社 福島市三河南町18番7号</strong><br>
+      TEL　024-535-2311　FAX　024-531-4473</p>
+    </div>
+
+    <div class="approval-box">
+      <table>
+        <tr>
+          <th>承認</th>
+          <th>検印</th>
+          <th>受付</th>
+        </tr>
+        <tr>
+          <td style="height: 50px;"></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="action-buttons">
+    <button onclick="generatePDF()">📄 PDFを作成</button>
+    <button onclick="window.print()">🖨️ 注文書を印刷する</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const userName = urlParams.get("user") || "佐藤";
+    const remarks = urlParams.get("site") || "現場名未入力";
+    const customerCode = urlParams.get("code") || "70243902"; // ← ★追加
+
+    const models = [];
+    const qtys = [];
+    for (let i = 1; ; i++) {
+      const model = urlParams.get(`model${i}`);
+      const qty = urlParams.get(`qty${i}`);
+      if (!model || !qty) break;
+      models.push(model);
+      qtys.push(qty);
+    }
+
+    let gasType = "";
+
+    function updateGasType() {
+      gasType = document.getElementById("gasType").value;
+      updateOrderRows();
+    }
+
+    function updateOrderRows() {
+      const tbody = document.getElementById("orderBody");
+      tbody.innerHTML = "";
+
+      for (let i = 0; i < models.length; i++) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td></td>
+          <td>${models[i]}</td>
+          <td>${gasType}</td>
+          <td>${qtys[i]}</td>
+          <td>即納 /</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    const now = new Date();
+    document.getElementById("year").textContent = now.getFullYear() - 2018;
+    document.getElementById("month").textContent = now.getMonth() + 1;
+    document.getElementById("day").textContent = now.getDate();
+    document.getElementById("time").textContent = now.toTimeString().substring(0, 5);
+    document.getElementById("userNameCell").textContent = "倉島商事 " + userName;
+    document.getElementById("remarks").textContent = remarks;
+    document.getElementById("customerCodeCell").textContent = customerCode; // ← ★追加
+
+    updateOrderRows();
+
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "pt", "a4");
+      const canvas = await html2canvas(document.getElementById("orderForm"));
+      const imgData = canvas.toDataURL("image/png");
+      const width = pdf.internal.pageSize.getWidth();
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, width, height);
+      pdf.save("rinnai_order.pdf");
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>使用報告一覧</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f9ff;
+      padding: 20px;
+      color: #2c3e50;
+      margin-top: 60px;
+    }
+    h1 {
+      text-align: center;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #fff;
+      margin: 10px 0;
+      padding: 10px;
+      border-left: 5px solid #2ecc71;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #34495e;
+      padding: 10px;
+      text-align: center;
+    }
+    .nav a {
+      margin: 0 10px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nav">
+    <a href="zaiko-toroku.html">📥 在庫登録</a>
+    <a href="inventory-list.html">📋 未使用一覧</a>
+    <a href="inventory-used.html">✔ 使用済み一覧</a>
+    <a href="report.html">📝 使用履歴</a>
+  </div>
+
+  <h1>📝 使用報告一覧</h1>
+  <ul id="reportList"></ul>
+
+  <script>
+    const reports = JSON.parse(localStorage.getItem('usedReports') || '[]');
+    const list = document.getElementById('reportList');
+
+    if (reports.length === 0) {
+      list.innerHTML = "<li>まだ使用報告はありません。</li>";
+    } else {
+      reports.reverse().forEach(r => {
+        const li = document.createElement('li');
+        li.innerHTML = `🛠 ${r.itemName}（${r.model}）を ${r.date} に使用`;
+        list.appendChild(li);
+      });
+    }
+  </script>
+
+</body>
+</html>
