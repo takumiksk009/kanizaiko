@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>使用済み在庫一覧</title>
+  <style>
+    body { font-family: sans-serif; background: #f4f4f4; padding: 20px; color: #2c3e50; margin-top: 60px; }
+    h1, h2 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+    th { background-color: #7f8c8d; color: white; }
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; background: #34495e; padding: 10px; text-align: center;
+    }
+    .nav a {
+      margin: 0 10px; color: white; text-decoration: none; font-weight: bold;
+    }
+    input.price-input {
+      width: 100px;
+      text-align: right;
+    }
+    .more-button {
+      display: block;
+      margin: 5px auto 25px;
+      padding: 5px 15px;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .more-button:hover {
+      background: #3498db;
+    }
+    .edit-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <a href="zaiko-toroku.html">📅 在庫登録</a>
+    <a href="inventory-list.html">📋 未使用一覧</a>
+    <a href="inventory-used.html">✔ 使用済み一覧</a>
+    <a href="report.html">🖘 使用履歴</a>
+    <div class="edit-controls">
+      <button id="editToggle">✏ 編集</button>
+    </div>
+  </div>
+
+  <h1>✔ 使用済み 在庫一覧</h1>
+  <div id="usedContainer"></div>
+  <div style="text-align:center; margin-top: 20px;">
+    <button onclick="savePrices()">📌 納入価格を保存</button>
+    <button id="deleteButton" style="display:none; margin-left: 10px;" onclick="deleteSelected()">❌ 選択した項目を削除</button>
+  </div>
+
+  <script>
+    const inventory = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+    let usedReports = JSON.parse(localStorage.getItem('usedReports') || '[]');
+
+    const grouped = {};
+    usedReports.forEach((report, index) => {
+      const item = inventory.find(i => i.id === report.itemId);
+      if (!item) return;
+      const category = item.category || "未分類";
+      if (!grouped[category]) grouped[category] = [];
+
+      const usedDateFormatted = report.date ? new Date(report.date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' }) : '';
+
+      grouped[category].push({
+        user: item.user,
+        site: item.site || "",
+        name: item.name,
+        model: item.model,
+        date: item.date,
+        usedBy: report.user || '',
+        quantity: report.quantity || '',
+        usedDate: usedDateFormatted,
+        manageCode: report.manageCode || '',
+        price: report.price || "",
+        index
+      });
+    });
+
+    const container = document.getElementById('usedContainer');
+    let editMode = false;
+
+    Object.keys(grouped).forEach(category => {
+      const heading = document.createElement('h2');
+      heading.textContent = `📁 ${category}`;
+      container.appendChild(heading);
+
+      const table = document.createElement('table');
+      const tbody = document.createElement('tbody');
+      const maxVisible = 10;
+
+      grouped[category].forEach((item, i) => {
+        const row = document.createElement('tr');
+        if (i >= maxVisible) row.style.display = 'none';
+        row.innerHTML = `
+          <td>${item.user}</td>
+          <td>${item.site}</td>
+          <td>${item.name}</td>
+          <td>${item.model}</td>
+          <td>${item.date}</td>
+          <td>${item.usedBy}</td>
+          <td>${item.quantity}</td>
+          <td>${item.manageCode}</td>
+          <td>${item.usedDate}</td>
+          <td><input type="text" class="price-input" data-index="${item.index}" value="${item.price}" placeholder="0円"></td>
+          <td class="checkbox-cell" style="display:none;"><input type="checkbox" class="delete-check" data-index="${item.index}"></td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>登録者</th>
+            <th>現場名</th>
+            <th>商品名</th>
+            <th>型式</th>
+            <th>仕入れ日</th>
+            <th>使用者</th>
+            <th>使用数</th>
+            <th>管理番号</th>
+            <th>使用日</th>
+            <th>納入価格</th>
+            <th class="checkbox-cell" style="display:none;">選択</th>
+          </tr>
+        </thead>
+      `;
+      table.appendChild(tbody);
+      container.appendChild(table);
+
+      if (grouped[category].length > maxVisible) {
+        const button = document.createElement('button');
+        button.textContent = 'もっと見る';
+        button.className = 'more-button';
+        let expanded = false;
+
+        button.addEventListener('click', () => {
+          const rows = tbody.querySelectorAll('tr');
+          rows.forEach((row, i) => {
+            if (i >= maxVisible) row.style.display = expanded ? 'none' : '';
+          });
+          expanded = !expanded;
+          button.textContent = expanded ? '閉じる' : 'もっと見る';
+        });
+
+        container.appendChild(button);
+      }
+    });
+
+    document.addEventListener('blur', function (e) {
+      if (e.target.classList.contains('price-input')) {
+        let value = e.target.value.replace(/[^\d]/g, '');
+        e.target.value = value ? parseInt(value, 10).toLocaleString() + '円' : '';
+      }
+    }, true);
+
+    function savePrices() {
+      const inputs = document.querySelectorAll('.price-input');
+      inputs.forEach(input => {
+        const index = input.getAttribute('data-index');
+        let value = input.value.replace(/[^\d]/g, '');
+        usedReports[index].price = value ? parseInt(value, 10).toLocaleString() + '円' : '';
+      });
+      localStorage.setItem('usedReports', JSON.stringify(usedReports));
+      alert("納入価格を保存しました！");
+    }
+
+    document.getElementById('editToggle').addEventListener('click', () => {
+      editMode = !editMode;
+      document.querySelectorAll('.checkbox-cell').forEach(cell => {
+        cell.style.display = editMode ? '' : 'none';
+      });
+      document.getElementById('deleteButton').style.display = editMode ? 'inline-block' : 'none';
+      document.getElementById('editToggle').textContent = editMode ? '✅ 完了' : '✏ 編集';
+    });
+
+    function deleteSelected() {
+      const checked = document.querySelectorAll('.delete-check:checked');
+      if (!checked.length) return alert("削除する項目が選択されていません！");
+      if (!confirm("選択した項目を削除します。よろしいですか？")) return;
+      const indexes = Array.from(checked).map(cb => parseInt(cb.dataset.index));
+      usedReports = usedReports.filter((_, i) => !indexes.includes(i));
+      localStorage.setItem('usedReports', JSON.stringify(usedReports));
+      alert("削除しました！");
+      location.reload();
+    }
+  </script>
+</body>
+</html>
