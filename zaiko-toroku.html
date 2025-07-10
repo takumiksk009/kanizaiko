@@ -188,179 +188,109 @@
   </div>
 
   <script>
-    const form = document.getElementById('zaikoForm');
-    const orderedList = document.getElementById('orderedList');
+  const form = document.getElementById('zaikoForm');
+  const orderedList = document.getElementById('orderedList');
 
-    function addModelField() {
-      const div = document.createElement('div');
-      div.className = 'model-group';
-      div.innerHTML = `
-        <label>型式<input type="text" name="model[]"></label>
-        <label>個数<input type="number" name="qty[]" min="1" value="1"></label>
-      `;
-      document.getElementById('modelFields').appendChild(div);
-    }
+  const POST_URL = "https://script.google.com/macros/s/AKfycbyWj8HcUgQ7AwyBfASJHx-EuwpnSsExSOj4juR5p8Djk37xj9VGRdkXYVDQUlVTpCc/exec";
+  const GET_URL = "https://script.google.com/macros/s/AKfycbyWj8HcUgQ7AwyBfASJHx-EuwpnSsExSOj4juR5p8Djk37xj9VGRdkXYVDQUlVTpCc/exec";
+
+  function addModelField() {
+    const div = document.createElement('div');
+    div.className = 'model-group';
+    div.innerHTML = `
+      <label>型式<input type="text" name="model[]"></label>
+      <label>個数<input type="number" name="qty[]" min="1" value="1"></label>
+    `;
+    document.getElementById('modelFields').appendChild(div);
+  }
 
     function loadOrdered() {
-      const data = JSON.parse(localStorage.getItem('orderedStock') || '[]');
-      const grouped = {};
-      data.forEach(item => {
-        const key = `${item.category}-${item.user}-${item.site}-${item.maker}-${item.date}`;
-        if (!grouped[key]) grouped[key] = { ...item, items: [] };
-        grouped[key].items.push({ model: item.model, qty: item.qty });
-      });
+      fetch(GET_URL)
+        .then(res => res.json())
+        .then(data => {
+          const grouped = {};
+          data.forEach(item => {
+            const key = `${item.category}-${item.user}-${item.site}-${item.maker}-${item.date}`;
+            if (!grouped[key]) grouped[key] = { ...item, items: [] };
+            grouped[key].items.push({ model: item.model, qty: item.qty });
+          });
 
-      orderedList.innerHTML = '<h2 style="text-align:center; margin-top:40px;">📋 注文済みの商品</h2>';
-      Object.values(grouped).forEach(group => {
-        const title = document.createElement('div');
-        title.className = 'category';
-        title.textContent = group.category;
-        orderedList.appendChild(title);
+          orderedList.innerHTML = '<h2 style="text-align:center; margin-top:40px;">📋 注文済みの商品</h2>';
+          Object.values(grouped).forEach(group => {
+            const title = document.createElement('div');
+            title.className = 'category';
+            title.textContent = group.category;
+            orderedList.appendChild(title);
 
-        const div = document.createElement('div');
-        div.className = 'ordered-item';
+            const div = document.createElement('div');
+            div.className = 'ordered-item';
 
-        const makerInfo = document.createElement('div');
-        makerInfo.className = 'maker-label';
-        makerInfo.textContent = `メーカー: ${group.maker}`;
+            const makerInfo = document.createElement('div');
+            makerInfo.className = 'maker-label';
+            makerInfo.textContent = `メーカー: ${group.maker}`;
 
-        const info = document.createElement('div');
-        info.className = 'ordered-info';
-
-        group.items.forEach(i => {
-          const itemDiv = document.createElement('div');
-          itemDiv.style.marginBottom = '5px';
-          itemDiv.innerHTML = `${i.model}（${i.qty}台）`;
-
-          const registerBtn = document.createElement('button');
-          registerBtn.textContent = '登録';
-          registerBtn.style.marginLeft = '10px';
-          registerBtn.onclick = () => {
-            const inventory = JSON.parse(localStorage.getItem('inventoryData') || '[]');
-            const newItem = {
-              id: Date.now(),
-              user: group.user,
-              name: group.category,
-              model: i.model,
-              quantity: parseInt(i.qty),
-              category: group.category,
-              maker: group.maker,
-              date: group.date
-            };
-            inventory.push(newItem);
-            localStorage.setItem('inventoryData', JSON.stringify(inventory));
-
-            const remaining = data.filter(item =>
-              !(item.model === i.model &&
-                item.user === group.user &&
-                item.site === group.site &&
-                item.category === group.category &&
-                item.maker === group.maker &&
-                item.date === group.date)
-            );
-            localStorage.setItem('orderedStock', JSON.stringify(remaining));
-            loadOrdered();
-          };
-
-          itemDiv.appendChild(registerBtn);
-          info.appendChild(itemDiv);
-        });
-
-        const meta = document.createElement('div');
-        meta.className = 'order-meta';
-        meta.innerHTML = `登録者: ${group.user} ／ 現場名: ${group.site} ／ 日付: ${group.date}`;
-
-        const actions = document.createElement('div');
-        actions.className = 'order-actions';
-
-        const leftButtons = document.createElement('div');
-        leftButtons.className = 'left-buttons';
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = '削除';
-        deleteBtn.onclick = () => {
-          if (confirm('本当に削除しますか？')) {
-            const remaining = data.filter(i =>
-              !(i.user === group.user &&
-                i.site === group.site &&
-                i.category === group.category &&
-                i.maker === group.maker &&
-                i.date === group.date)
-            );
-            localStorage.setItem('orderedStock', JSON.stringify(remaining));
-            loadOrdered();
-          }
-        };
-
-        leftButtons.appendChild(deleteBtn);
-
-        const rightButton = document.createElement('div');
-        rightButton.className = 'right-button';
-
-        if (
-          group.maker === 'リンナイ' ||
-          group.maker === 'パロマ' ||
-          group.maker === 'クラシマ' ||
-          group.maker === 'ベストパーツ'
-        ) {
-          const orderBtn = document.createElement('button');
-          orderBtn.textContent = '注文書作成';
-          orderBtn.onclick = () => {
-            const params = new URLSearchParams();
-            group.items.forEach((i, idx) => {
-              params.append(`model${idx + 1}`, i.model);
-              params.append(`qty${idx + 1}`, i.qty);
+            const info = document.createElement('div');
+            info.className = 'ordered-info';
+            group.items.forEach(i => {
+              const itemDiv = document.createElement('div');
+              itemDiv.style.marginBottom = '5px';
+              itemDiv.innerHTML = `${i.model}（${i.qty}台）`;
+              info.appendChild(itemDiv);
             });
-            params.append('user', group.user);
-            params.append('site', group.site);
 
-            const orderUrl =
-              group.maker === 'リンナイ' ? 'rinnai_order_form.html' :
-              group.maker === 'パロマ' ? 'paroma_order_form.html' :
-              group.maker === 'クラシマ' ? 'kurashima_order_form.html' :
-              group.maker === 'ベストパーツ' ? 'besuto_order_form.html' :
-              'bestparts_order_form.html';
+            const meta = document.createElement('div');
+            meta.className = 'order-meta';
+            meta.innerHTML = `登録者: ${group.user} ／ 現場名: ${group.site} ／ 日付: ${group.date}`;
 
-            window.open(`${orderUrl}?${params.toString()}`, '_blank');
-          };
-          rightButton.appendChild(orderBtn);
-        }
-
-        actions.appendChild(leftButtons);
-        actions.appendChild(rightButton);
-
-        div.appendChild(makerInfo);
-        div.appendChild(info);
-        div.appendChild(meta);
-        div.appendChild(actions);
-        orderedList.appendChild(div);
-      });
+            div.appendChild(makerInfo);
+            div.appendChild(info);
+            div.appendChild(meta);
+            orderedList.appendChild(div);
+          });
+        })
+        .catch(err => console.error("読み込みエラー:", err));
     }
 
-    form.addEventListener('submit', e => {
+    form.addEventListener('submit', function(e) {
       e.preventDefault();
-      const formData = new FormData(form);
-      const user = formData.get('user');
-      const maker = formData.get('maker');
-      const category = formData.get('category');
-      const site = formData.get('site');
-      const date = formData.get('date');
-      const models = formData.getAll('model[]');
-      const qtys = formData.getAll('qty[]');
 
-      const ordered = JSON.parse(localStorage.getItem('orderedStock') || '[]');
+      const formData = new FormData(form);
+      const user = formData.get("user");
+      const maker = formData.get("maker");
+      const category = formData.get("category");
+      const site = formData.get("site");
+      const date = formData.get("date");
+      const models = formData.getAll("model[]");
+      const qtys = formData.getAll("qty[]");
 
       for (let i = 0; i < models.length; i++) {
-        ordered.push({ user, maker, category, site, date, model: models[i], qty: qtys[i] });
+        const params = new URLSearchParams();
+        params.append("user", user);
+        params.append("maker", maker);
+        params.append("category", category);
+        params.append("model", models[i]);
+        params.append("qty", qtys[i]);
+        params.append("site", site);
+        params.append("date", date);
+
+        fetch(POST_URL, {
+          method: "POST",
+          body: params
+        })
+        .then(res => res.text())
+        .then(res => {
+          console.log("登録完了:", res);
+          loadOrdered();
+        })
+        .catch(err => console.error("送信失敗:", err));
       }
 
-      localStorage.setItem('orderedStock', JSON.stringify(ordered));
+      alert("登録を受け付けました！");
       form.reset();
       document.getElementById('modelFields').innerHTML = '<div class="model-group"><label>型式<input type="text" name="model[]"></label><label>個数<input type="number" name="qty[]" min="1" value="1"></label></div>';
-      loadOrdered();
     });
 
-    loadOrdered();
+    window.addEventListener("DOMContentLoaded", loadOrdered);
   </script>
 </body>
 </html>
