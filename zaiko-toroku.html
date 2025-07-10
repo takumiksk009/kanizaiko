@@ -110,7 +110,6 @@
     .order-actions .right-button {
       margin-left: auto;
     }
-
     @media (max-width: 600px) {
       form {
         padding: 15px;
@@ -132,37 +131,31 @@
 
   <h1>📦 リンナイ在庫登録フォーム</h1>
   <form id="zaikoForm">
-    <label>登録者選択
-      <select name="user">
-        <option value="">登録者選択</option>
-        <option value="阿部">阿部</option>
-        <option value="鈴木">鈴木</option>
-        <option value="紺野">紺野</option>
-        <option value="亀岡">亀岡</option>
-        <option value="大槻">大槻</option>
-        <option value="青田">青田</option>
-        <option value="菊田">菊田</option>
-        <option value="高橋">高橋</option>
-        <option value="佐藤">佐藤</option>
-        <option value="今泉">今泉</option>
-      </select>
-    </label>
+    <label>登録者選択<select name="user">
+      <option value="">登録者選択</option>
+      <option value="阿部">阿部</option>
+      <option value="鈴木">鈴木</option>
+      <option value="紺野">紺野</option>
+      <option value="亀岡">亀岡</option>
+      <option value="大槻">大槻</option>
+      <option value="青田">青田</option>
+      <option value="菊田">菊田</option>
+      <option value="高橋">高橋</option>
+      <option value="佐藤">佐藤</option>
+      <option value="今泉">今泉</option>
+    </select></label>
 
-    <label>メーカー
-      <select name="maker">
-        <option value="リンナイ">リンナイ</option>
-      </select>
-    </label>
+    <label>メーカー<select name="maker">
+      <option value="リンナイ">リンナイ</option>
+    </select></label>
 
-    <label>製品カテゴリ
-      <select name="category">
-        <option value="">カテゴリ選択</option>
-        <option value="ガス給湯器">ガス給湯器</option>
-        <option value="ガス瞬間湯沸器">ガス瞬間湯沸器</option>
-        <option value="リモコン">リモコン</option>
-        <option value="配管カバー">配管カバー</option>
-      </select>
-    </label>
+    <label>製品カテゴリ<select name="category">
+      <option value="">カテゴリ選択</option>
+      <option value="ガス給湯器">ガス給湯器</option>
+      <option value="ガス瞬間湯沸器">ガス瞬間湯沸器</option>
+      <option value="リモコン">リモコン</option>
+      <option value="配管カバー">配管カバー</option>
+    </select></label>
 
     <div id="modelFields">
       <div class="model-group">
@@ -172,14 +165,8 @@
     </div>
     <button type="button" onclick="addModelField()">＋型式追加</button>
 
-    <label>🏠 現場名
-      <input type="text" name="site" />
-    </label>
-
-    <label>注文日
-      <input type="date" name="date" />
-    </label>
-
+    <label>🏠 現場名<input type="text" name="site" /></label>
+    <label>注文日<input type="date" name="date" /></label>
     <button type="submit">注文済</button>
   </form>
 
@@ -188,11 +175,10 @@
   </div>
 
   <script>
+  const POST_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+  const GET_URL = POST_URL;
   const form = document.getElementById('zaikoForm');
   const orderedList = document.getElementById('orderedList');
-
-  const POST_URL = "https://script.google.com/macros/s/AKfycbyWj8HcUgQ7AwyBfASJHx-EuwpnSsExSOj4juR5p8Djk37xj9VGRdkXYVDQUlVTpCc/exec";
-  const GET_URL = "https://script.google.com/macros/s/AKfycbyWj8HcUgQ7AwyBfASJHx-EuwpnSsExSOj4juR5p8Djk37xj9VGRdkXYVDQUlVTpCc/exec";
 
   function addModelField() {
     const div = document.createElement('div');
@@ -233,7 +219,6 @@
           info.className = 'ordered-info';
           group.items.forEach(i => {
             const itemDiv = document.createElement('div');
-            itemDiv.style.marginBottom = '5px';
             itemDiv.innerHTML = `${i.model}（${i.qty}台）`;
             info.appendChild(itemDiv);
           });
@@ -246,13 +231,12 @@
           actions.className = 'order-actions';
           actions.innerHTML = `
             <div class="left-buttons">
-              <button onclick="registerToLocal('${group.maker}', '${group.category}', '${group.site}', '${group.date}', '${group.user}')">✅ 登録</button>
+              <button onclick="registerToLocal('${group.maker}', '${group.category}', '${group.site}', '${group.date}', '${group.user}', '${group.items.map(i => i.model).join(',')}')">✅ 登録</button>
               <button onclick="alert('※削除は後で実装予定です')">🗑 削除</button>
             </div>
             <div class="right-button">
               <button onclick="location.href='order-sheet.html?maker=${group.maker}'">📄 注文書作成</button>
-            </div>
-          `;
+            </div>`;
 
           div.appendChild(makerInfo);
           div.appendChild(info);
@@ -260,20 +244,34 @@
           div.appendChild(actions);
           orderedList.appendChild(div);
         });
-      })
-      .catch(err => console.error("読み込みエラー:", err));
+      });
   }
 
-  function registerToLocal(maker, category, site, date, user) {
+  function registerToLocal(maker, category, site, date, user, model) {
     const existing = JSON.parse(localStorage.getItem('zaiko') || '[]');
     existing.push({ maker, category, site, date, user });
     localStorage.setItem('zaiko', JSON.stringify(existing));
     alert("未使用一覧に登録しました！");
+
+    const params = new URLSearchParams();
+    params.append("user", user);
+    params.append("maker", maker);
+    params.append("category", category);
+    params.append("model", model);
+    params.append("site", site);
+    params.append("date", date);
+    params.append("action", "delete");
+
+    fetch(POST_URL, {
+      method: "POST",
+      body: params
+    })
+    .then(res => res.text())
+    .then(() => loadOrdered());
   }
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
-
     const formData = new FormData(form);
     const user = formData.get("user");
     const maker = formData.get("maker");
@@ -296,13 +294,7 @@
       fetch(POST_URL, {
         method: "POST",
         body: params
-      })
-      .then(res => res.text())
-      .then(res => {
-        console.log("登録完了:", res);
-        loadOrdered();
-      })
-      .catch(err => console.error("送信失敗:", err));
+      }).then(res => res.text()).then(() => loadOrdered());
     }
 
     alert("登録を受け付けました！");
