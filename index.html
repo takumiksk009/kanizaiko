@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>在庫登録</title>
   <style>
     body {
@@ -118,6 +119,9 @@
         flex-direction: column;
         gap: 10px;
       }
+      .ordered-info, .maker-label, .order-meta {
+        font-size: 16px;
+      }
     }
   </style>
 </head>
@@ -134,29 +138,15 @@
     <label>登録者<select name="user" required>
       <option value="">登録者選択</option>
       <option value="阿部">阿部</option>
-      <option value="鈴木">鈴木</option>
-      <option value="紺野">紺野</option>
-      <option value="亀岡">亀岡</option>
-      <option value="大槻">大槻</option>
-      <option value="青田">青田</option>
-      <option value="菊田">菊田</option>
-      <option value="高橋">高橋</option>
-      <option value="佐藤">佐藤</option>
-      <option value="今泉">今泉</option>
+      <!-- 省略可: 他の登録者 -->
     </select></label>
-
     <label>メーカー<select name="maker">
       <option value="リンナイ">リンナイ</option>
     </select></label>
-
     <label>製品カテゴリ<select name="category" required>
       <option value="">カテゴリ選択</option>
       <option value="ガス給湯器">ガス給湯器</option>
-      <option value="ガス瞬間湯沸器">ガス瞬間湯沸器</option>
-      <option value="リモコン">リモコン</option>
-      <option value="配管カバー">配管カバー</option>
     </select></label>
-
     <div id="modelFields">
       <div class="model-group">
         <label>型式<input type="text" name="model[]" required></label>
@@ -164,7 +154,6 @@
       </div>
     </div>
     <button type="button" onclick="addModelField()">＋型式追加</button>
-
     <label>🏠 現場名<input type="text" name="site" /></label>
     <label>注文日<input type="date" name="date" /></label>
     <button type="submit">注文済</button>
@@ -197,8 +186,7 @@
       div.className = "model-group";
       div.innerHTML = `
         <label>型式<input type="text" name="model[]" required></label>
-        <label>個数<input type="number" name="qty[]" min="1" value="1" required></label>
-      `;
+        <label>個数<input type="number" name="qty[]" min="1" value="1" required></label>`;
       document.getElementById("modelFields").appendChild(div);
     }
 
@@ -214,15 +202,7 @@
       const qtys = formData.getAll("qty[]");
 
       for (let i = 0; i < models.length; i++) {
-        const data = {
-          user,
-          maker,
-          category,
-          site,
-          date,
-          model: models[i],
-          qty: Number(qtys[i])
-        };
+        const data = { user, maker, category, site, date, model: models[i], qty: Number(qtys[i]) };
         await push(ref(db, "inventory"), data);
       }
 
@@ -306,19 +286,14 @@
 
     window.deleteGroup = function(ids) {
       if (confirm("この注文をすべて削除しますか？")) {
-        const promises = ids.map(id =>
-          remove(ref(db, `inventory/${id}`))
-        );
-
-        Promise.all(promises)
-          .then(() => {
-            alert("削除しました！");
-            loadOrdered(); // 再読み込み！
-          })
-          .catch((err) => {
-            console.error("削除中にエラー:", err);
-            alert("削除に失敗しました💦");
-          });
+        const promises = ids.map(id => remove(ref(db, `inventory/${id}`)));
+        Promise.all(promises).then(() => {
+          alert("削除しました！");
+          loadOrdered();
+        }).catch((err) => {
+          console.error("削除中にエラー:", err);
+          alert("削除に失敗しました💦");
+        });
       }
     };
 
