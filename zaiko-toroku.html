@@ -131,7 +131,7 @@
 
   <h1>📦 リンナイ在庫登録フォーム</h1>
   <form id="zaikoForm">
-    <label>登録者選択<select name="user">
+    <label>登録者<select name="user" required>
       <option value="">登録者選択</option>
       <option value="阿部">阿部</option>
       <option value="鈴木">鈴木</option>
@@ -149,7 +149,7 @@
       <option value="リンナイ">リンナイ</option>
     </select></label>
 
-    <label>製品カテゴリ<select name="category">
+    <label>製品カテゴリ<select name="category" required>
       <option value="">カテゴリ選択</option>
       <option value="ガス給湯器">ガス給湯器</option>
       <option value="ガス瞬間湯沸器">ガス瞬間湯沸器</option>
@@ -159,8 +159,8 @@
 
     <div id="modelFields">
       <div class="model-group">
-        <label>型式<input type="text" name="model[]"></label>
-        <label>個数<input type="number" name="qty[]" min="1" value="1"></label>
+        <label>型式<input type="text" name="model[]" required></label>
+        <label>個数<input type="number" name="qty[]" min="1" value="1" required></label>
       </div>
     </div>
     <button type="button" onclick="addModelField()">＋型式追加</button>
@@ -174,65 +174,115 @@
     <h2 style="text-align:center; margin-top:40px;">📋 注文済みの商品</h2>
   </div>
 
-  <script>
-  const POST_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
-  const GET_URL = POST_URL;
-  const form = document.getElementById('zaikoForm');
-  const orderedList = document.getElementById('orderedList');
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-  function addModelField() {
-    const div = document.createElement('div');
-    div.className = 'model-group';
-    div.innerHTML = `
-      <label>型式<input type="text" name="model[]"></label>
-      <label>個数<input type="number" name="qty[]" min="1" value="1"></label>
-    `;
-    document.getElementById('modelFields').appendChild(div);
-  }
+    const firebaseConfig = {
+      apiKey: "AIzaSyARhO9hECPxXopKRBZrHBAkboqmCxY651i0",
+      authDomain: "zaiko-app-54fa6.firebaseapp.com",
+      databaseURL: "https://zaiko-app-54fa6-default-rtdb.firebaseio.com",
+      projectId: "zaiko-app-54fa6",
+      storageBucket: "zaiko-app-54fa6.appspot.com",
+      messagingSenderId: "615970420186",
+      appId: "1:615970420186:web:8eab3b94d70da28f5bce3"
+    };
 
-  function loadOrdered() {
-    fetch(GET_URL)
-      .then(res => res.json())
-      .then(data => {
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const form = document.getElementById("zaikoForm");
+
+    function addModelField() {
+      const div = document.createElement("div");
+      div.className = "model-group";
+      div.innerHTML = `
+        <label>型式<input type="text" name="model[]" required></label>
+        <label>個数<input type="number" name="qty[]" min="1" value="1" required></label>
+      `;
+      document.getElementById("modelFields").appendChild(div);
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const user = formData.get("user");
+      const maker = formData.get("maker");
+      const category = formData.get("category");
+      const site = formData.get("site");
+      const date = formData.get("date") || new Date().toISOString().split("T")[0];
+      const models = formData.getAll("model[]");
+      const qtys = formData.getAll("qty[]");
+
+      for (let i = 0; i < models.length; i++) {
+        const data = {
+          user,
+          maker,
+          category,
+          site,
+          date,
+          model: models[i],
+          qty: Number(qtys[i])
+        };
+        await push(ref(db, "inventory"), data);
+      }
+
+      alert("Firebaseに登録しました！🎉");
+      form.reset();
+      document.getElementById("modelFields").innerHTML = `
+        <div class="model-group">
+          <label>型式<input type="text" name="model[]" required></label>
+          <label>個数<input type="number" name="qty[]" min="1" value="1" required></label>
+        </div>`;
+    });
+
+    function loadOrdered() {
+      const orderedList = document.getElementById("orderedList");
+      const inventoryRef = ref(db, "inventory");
+
+      onValue(inventoryRef, (snapshot) => {
+        const data = snapshot.val();
+        orderedList.innerHTML = '<h2 style="text-align:center; margin-top:40px;">📋 注文済みの商品</h2>';
+        if (!data) return;
+
         const grouped = {};
-        data.forEach(item => {
+        Object.entries(data).forEach(([id, item]) => {
           const key = `${item.category}-${item.user}-${item.site}-${item.maker}-${item.date}`;
-          if (!grouped[key]) grouped[key] = { ...item, items: [] };
+          if (!grouped[key]) grouped[key] = { ...item, items: [], ids: [] };
           grouped[key].items.push({ model: item.model, qty: item.qty });
+          grouped[key].ids.push(id);
         });
 
-        orderedList.innerHTML = '<h2 style="text-align:center; margin-top:40px;">📋 注文済みの商品</h2>';
         Object.values(grouped).forEach(group => {
-          const title = document.createElement('div');
-          title.className = 'category';
+          const title = document.createElement("div");
+          title.className = "category";
           title.textContent = group.category;
           orderedList.appendChild(title);
 
-          const div = document.createElement('div');
-          div.className = 'ordered-item';
+          const div = document.createElement("div");
+          div.className = "ordered-item";
 
-          const makerInfo = document.createElement('div');
-          makerInfo.className = 'maker-label';
+          const makerInfo = document.createElement("div");
+          makerInfo.className = "maker-label";
           makerInfo.textContent = `メーカー: ${group.maker}`;
 
-          const info = document.createElement('div');
-          info.className = 'ordered-info';
+          const info = document.createElement("div");
+          info.className = "ordered-info";
           group.items.forEach(i => {
-            const itemDiv = document.createElement('div');
+            const itemDiv = document.createElement("div");
             itemDiv.innerHTML = `${i.model}（${i.qty}台）`;
             info.appendChild(itemDiv);
           });
 
-          const meta = document.createElement('div');
-          meta.className = 'order-meta';
+          const meta = document.createElement("div");
+          meta.className = "order-meta";
           meta.innerHTML = `登録者: ${group.user} ／ 現場名: ${group.site} ／ 日付: ${group.date}`;
 
-          const actions = document.createElement('div');
-          actions.className = 'order-actions';
+          const actions = document.createElement("div");
+          actions.className = "order-actions";
           actions.innerHTML = `
             <div class="left-buttons">
               <button onclick="registerToLocal('${group.maker}', '${group.category}', '${group.site}', '${group.date}', '${group.user}', '${group.items.map(i => i.model).join(',')}')">✅ 登録</button>
-              <button onclick="alert('※削除は後で実装予定です')">🗑 削除</button>
+              <button onclick='deleteGroup(${JSON.stringify(group.ids)})'>🗑 削除</button>
             </div>
             <div class="right-button">
               <button onclick="location.href='order-sheet.html?maker=${group.maker}'">📄 注文書作成</button>
@@ -245,64 +295,34 @@
           orderedList.appendChild(div);
         });
       });
-  }
-
-  function registerToLocal(maker, category, site, date, user, model) {
-    const existing = JSON.parse(localStorage.getItem('zaiko') || '[]');
-    existing.push({ maker, category, site, date, user });
-    localStorage.setItem('zaiko', JSON.stringify(existing));
-    alert("未使用一覧に登録しました！");
-
-    const params = new URLSearchParams();
-    params.append("user", user);
-    params.append("maker", maker);
-    params.append("category", category);
-    params.append("model", model);
-    params.append("site", site);
-    params.append("date", date);
-    params.append("action", "delete");
-
-    fetch(POST_URL, {
-      method: "POST",
-      body: params
-    })
-    .then(res => res.text())
-    .then(() => loadOrdered());
-  }
-
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(form);
-    const user = formData.get("user");
-    const maker = formData.get("maker");
-    const category = formData.get("category");
-    const site = formData.get("site");
-    const date = formData.get("date");
-    const models = formData.getAll("model[]");
-    const qtys = formData.getAll("qty[]");
-
-    for (let i = 0; i < models.length; i++) {
-      const params = new URLSearchParams();
-      params.append("user", user);
-      params.append("maker", maker);
-      params.append("category", category);
-      params.append("model", models[i]);
-      params.append("qty", qtys[i]);
-      params.append("site", site);
-      params.append("date", date);
-
-      fetch(POST_URL, {
-        method: "POST",
-        body: params
-      }).then(res => res.text()).then(() => loadOrdered());
     }
 
-    alert("登録を受け付けました！");
-    form.reset();
-    document.getElementById('modelFields').innerHTML = '<div class="model-group"><label>型式<input type="text" name="model[]"></label><label>個数<input type="number" name="qty[]" min="1" value="1"></label></div>';
-  });
+    window.registerToLocal = function(maker, category, site, date, user, model) {
+      const existing = JSON.parse(localStorage.getItem('zaiko') || '[]');
+      existing.push({ maker, category, site, date, user });
+      localStorage.setItem('zaiko', JSON.stringify(existing));
+      alert("未使用一覧に登録しました！");
+    };
 
-  window.addEventListener("DOMContentLoaded", loadOrdered);
+    window.deleteGroup = function(ids) {
+      if (confirm("この注文をすべて削除しますか？")) {
+        const promises = ids.map(id =>
+          remove(ref(db, `inventory/${id}`))
+        );
+
+        Promise.all(promises)
+          .then(() => {
+            alert("削除しました！");
+            loadOrdered(); // 再読み込み！
+          })
+          .catch((err) => {
+            console.error("削除中にエラー:", err);
+            alert("削除に失敗しました💦");
+          });
+      }
+    };
+
+    window.addEventListener("DOMContentLoaded", loadOrdered);
   </script>
 </body>
 </html>
