@@ -317,12 +317,44 @@ function deleteGroup(category, user, site, maker, date) {
   });
 }
 
+
 function registerToLocal(maker, category, site, date, user) {
-    const existing = JSON.parse(localStorage.getItem('zaiko') || '[]');
-    existing.push({ maker, category, site, date, user });
-    localStorage.setItem('zaiko', JSON.stringify(existing));
-    alert("未使用一覧に登録しました！");
-  }
+  firebase.database().ref("inventory").once("value").then(snapshot => {
+    const data = snapshot.val();
+    if (!data) return;
+
+    const matchedItems = Object.entries(data).filter(([id, item]) => {
+      return item.maker === maker &&
+             item.category === category &&
+             item.site === site &&
+             item.date === date &&
+             item.user === user;
+    });
+
+    const localData = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+    let maxId = localData.reduce((max, item) => item.id > max ? item.id : max, 0);
+
+    matchedItems.forEach(([id, item]) => {
+      maxId++;
+      localData.push({
+        id: maxId,
+        user: item.user,
+        name: item.maker,
+        category: item.category,
+        site: item.site,
+        model: item.model,
+        quantity: parseInt(item.qty),
+        date: item.date
+      });
+      firebase.database().ref("inventory/" + id).remove();  // ✅ 削除処理！
+    });
+
+    localStorage.setItem('inventoryData', JSON.stringify(localData));
+    alert("未使用一覧に登録し、注文済みから削除しました！");
+    loadOrdered();  // ✅ 表示も更新！
+  });
+}
+
 
   
 form.addEventListener('submit', function(e) {
