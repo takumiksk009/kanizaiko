@@ -163,7 +163,7 @@
 
       const idsToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
       inventory = inventory.filter(i => !idsToDelete.includes(i.id));
-      localStorage.setItem('inventoryData', JSON.stringify(inventory));
+      
       
     }
 
@@ -300,20 +300,20 @@
         manageCode: fullManageCode,
         date: new Date().toLocaleString()
       });
-      localStorage.setItem('usedReports', JSON.stringify(usedLogs));
+      
       alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました！`);
       
     }
 
     function updateCategory(id, newCategory) {
       inventory = inventory.map(i => i.id === id ? { ...i, category: newCategory } : i);
-      localStorage.setItem('inventoryData', JSON.stringify(inventory));
+      
       
     }
 
     function updateSite(id, newSite) {
       inventory = inventory.map(i => i.id === id ? { ...i, site: newSite } : i);
-      localStorage.setItem('inventoryData', JSON.stringify(inventory));
+      
     }
   </script>
 </body>
