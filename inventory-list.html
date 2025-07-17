@@ -100,7 +100,6 @@
   function loadInventoryFromFirebase() {
     firebase.database().ref("inventory").once("value").then(snapshot => {
       const data = snapshot.val();
-      const tableBody = document.getElementById("inventory-body");
       tableBody.innerHTML = "";
       if (!data) return;
       Object.entries(data).forEach(([key, item]) => {
