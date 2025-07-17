@@ -97,28 +97,98 @@
   };
   firebase.initializeApp(firebaseConfig);
 
+  
   function loadInventoryFromFirebase() {
     firebase.database().ref("inventory").once("value").then(snapshot => {
       const data = snapshot.val();
-      const tableBody = document.getElementById("inventory-body");
-      tableBody.innerHTML = "";
       if (!data) return;
+
+      const grouped = {};
       Object.entries(data).forEach(([key, item]) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td><input type="checkbox" class="select-checkbox" data-id="${key}"></td>
-          <td>${item.user || ""}</td>
-          <td>${item.name || item.maker || ""}</td>
-          <td>${item.category || ""}</td>
-          <td>${item.site || ""}</td>
-          <td>${item.model || ""}</td>
-          <td>${item.qty || 0}</td>
-          <td>${item.date || ""}</td>
+        const cat = item.category || "未分類";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push({ ...item, id: key });
+      });
+
+      const container = document.getElementById("inventoryContainer");
+      container.innerHTML = "";
+
+      const categoryOptions = ["", "ガス給湯器", "ガス瞬間湯沸器", "リモコン", "配管カバー"];
+
+      function getPrefix(category) {
+        if (category.includes("給湯器")) return "キ-";
+        if (category.includes("湯沸")) return "ユ-";
+        if (category.includes("リモコン")) return "リ-";
+        return "-";
+      }
+
+      Object.keys(grouped).forEach(category => {
+        const h2 = document.createElement("h2");
+        h2.textContent = `📁 ${category}`;
+        container.appendChild(h2);
+
+        const table = document.createElement("table");
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>登録者</th>
+              <th>カテゴリ＆現場名</th>
+              <th>商品名</th>
+              <th>型式</th>
+              <th>個数</th>
+              <th>仕入れ日</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${grouped[category].map(item => {
+              const selectorId = `userSelect-${item.id}`;
+              const qtyId = `qtySelect-${item.id}`;
+              const manageId = `manageId-${item.id}`;
+              const catId = `category-${item.id}`;
+              const siteId = `siteInput-${item.id}`;
+              const prefix = getPrefix(item.category || "");
+              const optionsHtml = categoryOptions.map(opt => `<option value="${opt}" ${item.category === opt ? 'selected' : ''}>${opt}</option>`).join('');
+
+              return `
+                <tr>
+                  <td>${item.user}</td>
+                  <td>
+                    <div class="input-group">
+                      <select id="${catId}" onchange="firebase.database().ref('inventory/' + '${item.id}').update({ category: this.value })">${optionsHtml}</select>
+                      <input type="text" id="${siteId}" placeholder="(現場名)" value="${item.site || ''}" onchange="firebase.database().ref('inventory/' + '${item.id}').update({ site: this.value })" />
+                    </div>
+                  </td>
+                  <td>${item.name}</td>
+                  <td>${item.model}</td>
+                  <td>${item.qty}</td>
+                  <td>${item.date}</td>
+                  <td>
+                    <div class="select-group">
+                      <select id="${selectorId}">
+                        <option value="">使用者選択</option>
+                        ${["阿部","鈴木","紺野","亀岡","大槻","青田","菊田","高橋","佐藤","今泉"].map(n => `<option value="${n}">${n}</option>`).join('')}
+                      </select>
+                      <select id="${qtyId}">
+                        ${[...Array(item.qty).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+                      </select>
+                      <label class="manage-label">
+                        <span>${prefix}</span><input type="text" id="${manageId}" placeholder="番号" />
+                      </label>
+                      <button class="unused" onclick="reportUsed('${item.id}', '${selectorId}', '${qtyId}', '${manageId}', '${prefix}', '${item.name}', '${item.model}')">使用する</button>
+                      <span class="delete-checkbox" style="display:none"><input type="checkbox" value="${item.id}"></span>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
         `;
-        tableBody.appendChild(row);
+        container.appendChild(table);
       });
     });
   }
+
 
   window.addEventListener("DOMContentLoaded", () => {
     loadInventoryFromFirebase();
