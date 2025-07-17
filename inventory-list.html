@@ -140,6 +140,23 @@
   <h1>📦 未使用 在庫一覧</h1>
   <div id="inventoryContainer"></div>
 
+<table>
+  <thead>
+    <tr>
+      <th>チェック</th>
+      <th>登録者</th>
+      <th>メーカー</th>
+      <th>カテゴリ</th>
+      <th>現場名</th>
+      <th>型式</th>
+      <th>個数</th>
+      <th>仕入日</th>
+    </tr>
+  </thead>
+  <tbody id="inventory-body"></tbody>
+</table>
+
+
   <script>
     const container = document.getElementById('inventoryContainer');
     let inventory = JSON.parse(localStorage.getItem('inventoryData') || '[]');
