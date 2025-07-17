@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
-<meta charset="utf-8"/>
-<title>在庫一覧</title>
-<style>
+  <meta charset="UTF-8">
+  <title>在庫一覧</title>
+  <style>
     body { font-family: sans-serif; background: #f9f9f9; padding: 20px; color: #2c3e50; margin-top: 60px; }
     h1, h2 { text-align: center; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 30px; table-layout: fixed; }
@@ -82,6 +81,7 @@
       button { font-size: 13px; padding: 8px 12px; }
     }
   </style>
+
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -100,6 +100,7 @@
   function loadInventoryFromFirebase() {
     firebase.database().ref("inventory").once("value").then(snapshot => {
       const data = snapshot.val();
+      const tableBody = document.getElementById("inventory-body");
       tableBody.innerHTML = "";
       if (!data) return;
       Object.entries(data).forEach(([key, item]) => {
@@ -123,19 +124,23 @@
     loadInventoryFromFirebase();
   });
 </script>
+
 </head>
 <body>
-<div class="nav">
-<a href="zaiko-toroku.html">📥 在庫登録</a>
-<a href="inventory-list.html">📋 未使用一覧</a>
-<a href="inventory-used.html">✔ 使用済み一覧</a>
-<a href="report.html">📜 使用履歴</a>
-</div>
-<button id="editModeButton" onclick="toggleEditMode()">🛠 編集モード</button>
-<button id="deleteSelectedBtn" onclick="deleteSelectedItems()">🗑 選択削除</button>
-<h1>📦 未使用 在庫一覧</h1>
-<div id="inventoryContainer"></div>
-<script>
+  <div class="nav">
+    <a href="zaiko-toroku.html">📥 在庫登録</a>
+    <a href="inventory-list.html">📋 未使用一覧</a>
+    <a href="inventory-used.html">✔ 使用済み一覧</a>
+    <a href="report.html">📜 使用履歴</a>
+  </div>
+
+  <button id="editModeButton" onclick="toggleEditMode()">🛠 編集モード</button>
+  <button id="deleteSelectedBtn" onclick="deleteSelectedItems()">🗑 選択削除</button>
+
+  <h1>📦 未使用 在庫一覧</h1>
+  <div id="inventoryContainer"></div>
+
+  <script>
     const container = document.getElementById('inventoryContainer');
     let inventory = JSON.parse(localStorage.getItem('inventoryData') || '[]');
     const usedReports = JSON.parse(localStorage.getItem('usedReports') || '[]');
@@ -185,7 +190,7 @@
 
     function getPrefix(category) {
       if (category.includes("給湯器")) return "キ-";
-      if (category.includes("湯沸器")) return "ユ-";
+      if (category.includes("湯沸")) return "ユ-";
       if (category.includes("リモコン")) return "リ-";
       return "-";
     }
@@ -296,7 +301,7 @@
         date: new Date().toLocaleString()
       });
       
-      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました`);
+      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました！`);
       
     }
 
@@ -311,5 +316,5 @@
       
     }
   </script>
-<div id="inventory-container"></div></body>
+</body>
 </html>
