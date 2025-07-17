@@ -114,7 +114,7 @@
           <td>${item.qty || 0}</td>
           <td>${item.date || ""}</td>
         `;
-        tableBody.appendChild(row);
+        document.getElementById("firebaseTableBody").appendChild(row);
       });
     });
   }
@@ -296,7 +296,7 @@
         date: new Date().toLocaleString()
       });
       
-      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました！`);
+      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました`);
       
     }
 
