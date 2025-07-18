@@ -97,32 +97,7 @@
   };
   firebase.initializeApp(firebaseConfig);
 
-  function loadInventoryFromFirebase() {
-    firebase.database().ref("inventory").once("value").then(snapshot => {
-      const data = snapshot.val();
-      const tableBody = document.getElementById("inventory-body");
-      tableBody.innerHTML = "";
-      if (!data) return;
-      Object.entries(data).forEach(([key, item]) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td><input type="checkbox" class="select-checkbox" data-id="${key}"></td>
-          <td>${item.user || ""}</td>
-          <td>${item.name || item.maker || ""}</td>
-          <td>${item.category || ""}</td>
-          <td>${item.site || ""}</td>
-          <td>${item.model || ""}</td>
-          <td>${item.qty || 0}</td>
-          <td>${item.date || ""}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    });
-  }
 
-  window.addEventListener("DOMContentLoaded", () => {
-    loadInventoryFromFirebase();
-  });
 </script>
 </head>
 <body>
@@ -182,7 +157,7 @@ const usedMap = {};
 
     const remainingItems = inventory.map(item => {
       const used = usedMap[item.id] || 0;
-      const remaining = item.quantity - used;
+      const remaining = (item.qty || 0) - used;
       return { ...item, remaining };
     }).filter(item => item.remaining > 0);
 
