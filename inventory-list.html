@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
-<meta charset="utf-8"/>
-<title>在庫一覧</title>
-<style>
+  <meta charset="UTF-8">
+  <title>在庫一覧</title>
+  <style>
 .table-wrapper {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -92,6 +91,7 @@ table {
       button { font-size: 13px; padding: 8px 12px; }
     }
   </style>
+
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -136,34 +136,40 @@ const firebaseConfig = {
   });
 });
 </script>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/></head>
+
+</head>
 <body>
-<div class="nav">
-<a href="zaiko-toroku.html">📥 在庫登録</a>
-<a href="inventory-list.html">📋 未使用一覧</a>
-<a href="inventory-used.html">✔ 使用済み一覧</a>
-<a href="report.html">📜 使用履歴</a>
-</div>
-<button id="editModeButton" onclick="toggleEditMode()">🛠 編集モード</button>
-<button id="deleteSelectedBtn" onclick="deleteSelectedItems()">🗑 選択削除</button>
-<h1>📦 未使用 在庫一覧</h1>
-<div id="inventoryContainer"></div>
+  <div class="nav">
+    <a href="zaiko-toroku.html">📥 在庫登録</a>
+    <a href="inventory-list.html">📋 未使用一覧</a>
+    <a href="inventory-used.html">✔ 使用済み一覧</a>
+    <a href="report.html">📜 使用履歴</a>
+  </div>
+
+  <button id="editModeButton" onclick="toggleEditMode()">🛠 編集モード</button>
+  <button id="deleteSelectedBtn" onclick="deleteSelectedItems()">🗑 選択削除</button>
+
+  <h1>📦 未使用 在庫一覧</h1>
+  <div id="inventoryContainer"></div>
+
 <table>
-<thead>
-<tr>
-<th>チェック</th>
-<th>登録者</th>
-<th>メーカー</th>
-<th>カテゴリ</th>
-<th>現場名</th>
-<th>型式</th>
-<th>個数</th>
-<th>仕入日</th>
-</tr>
-</thead>
-<tbody id="inventory-body"></tbody>
-</table>
-<script>
+  <thead>
+    <tr>
+      <th>チェック</th>
+      <th>登録者</th>
+      <th>メーカー</th>
+      <th>カテゴリ</th>
+      <th>現場名</th>
+      <th>型式</th>
+      <th>個数</th>
+      <th>仕入日</th>
+    </tr>
+  </thead>
+  <tbody id="inventory-body"></tbody>
+</table></div>
+
+
+  <script>
     const container = document.getElementById('inventoryContainer');
     let inventory = JSON.parse(localStorage.getItem('inventoryData') || '[]');
     const usedReports = JSON.parse(localStorage.getItem('usedReports') || '[]');
