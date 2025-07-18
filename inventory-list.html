@@ -2,7 +2,7 @@
 
 <html lang="ja">
 <head>
-<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta charset="utf-8"/>
 <title>在庫一覧</title>
 <style>
     body { font-family: sans-serif; background: #f9f9f9; padding: 20px; color: #2c3e50; margin-top: 60px; }
@@ -101,95 +101,47 @@
 
 
 <script>
-let inventory = [];
+document.addEventListener("DOMContentLoaded", () => {
+  const inventoryContainer = document.getElementById("inventoryContainer");
+  const usedReports = JSON.parse(localStorage.getItem("usedReports") || "[]");
 
-function updateCategory(itemId, newCategory) {
-  const item = inventory.find(i => i.id === itemId);
-  if (item) {
-    item.category = newCategory;
-    firebase.database().ref("inventory/" + itemId).update({ category: newCategory });
-  }
-}
-
-function updateSite(itemId, newSite) {
-  const item = inventory.find(i => i.id === itemId);
-  if (item) {
-    item.site = newSite;
-    firebase.database().ref("inventory/" + itemId).update({ site: newSite });
-  }
-}
-
-function reportUsed(itemId) {
-  const usedReports = JSON.parse(localStorage.getItem("usedReports") || "{}");
-  if (!usedReports[itemId]) usedReports[itemId] = 0;
-  usedReports[itemId]++;
-  localStorage.setItem("usedReports", JSON.stringify(usedReports));
-  renderInventory();
-}
-
-function renderInventory() {
-  const usedReports = JSON.parse(localStorage.getItem("usedReports") || "{}");
-  const container = document.getElementById("inventoryContainer");
-  if (!container) return;
-  container.innerHTML = "";
-
-  const categories = {};
-  inventory.forEach(item => {
-    const category = item.category || "未分類";
-    if (!categories[category]) categories[category] = [];
-    const used = usedReports[item.id] || 0;
-    const remaining = (item.qty || 0) - used;
-    if (remaining > 0) categories[category].push({ ...item, used, remaining });
-  });
-
-  Object.entries(categories).forEach(([category, items]) => {
-    const table = document.createElement("table");
-    const caption = document.createElement("caption");
-    caption.textContent = category;
-    table.appendChild(caption);
-
-    const header = document.createElement("tr");
-    ["登録者", "メーカー", "カテゴリ", "型式", "個数", "現場名", "注文日", "残数", "操作"].forEach(text => {
-      const th = document.createElement("th");
-      th.textContent = text;
-      header.appendChild(th);
-    });
-    table.appendChild(header);
-
-    items.forEach(item => {
-      const row = document.createElement("tr");
-      [
-        item.user, item.maker, item.category, item.model, item.qty, item.site, item.date,
-        item.remaining
-      ].forEach(value => {
-        const td = document.createElement("td");
-        td.textContent = value;
-        row.appendChild(td);
-      });
-
-      const actionTd = document.createElement("td");
-      const useBtn = document.createElement("button");
-      useBtn.textContent = "使用する";
-      useBtn.onclick = () => reportUsed(item.id);
-      actionTd.appendChild(useBtn);
-      row.appendChild(actionTd);
-
-      table.appendChild(row);
+  function renderInventory(inventory) {
+    const grouped = {};
+    inventory.forEach(item => {
+      const usedRecord = usedReports.find(r => r === item.id || r.itemId === item.id);
+      const used = usedRecord ? 1 : 0;
+      const remaining = (parseInt(item.qty) || 0) - used;
+      if (remaining <= 0) return;
+      if (!grouped[item.category]) grouped[item.category] = [];
+      grouped[item.category].push({ ...item, remaining });
     });
 
-    container.appendChild(table);
-  });
-}
+    inventoryContainer.innerHTML = "";
+    for (const [category, items] of Object.entries(grouped)) {
+      const table = document.createElement("table");
+      table.innerHTML = `
+        <thead>
+          <tr><th colspan="6">${category}</th></tr>
+          <tr>
+            <th>登録者</th><th>メーカー</th><th>型式</th><th>個数</th><th>現場名</th><th>注文日</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(item => `
+            <tr>
+              <td>${item.user}</td><td>${item.maker}</td><td>${item.model}</td>
+              <td>${item.remaining}</td><td>${item.site}</td><td>${item.date}</td>
+            </tr>`).join("")}
+        </tbody>`;
+      inventoryContainer.appendChild(table);
+    }
+  }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const snapshot = await firebase.database().ref("inventory").once("value");
+  firebase.database().ref("inventory").once("value").then(snapshot => {
     const data = snapshot.val() || {};
-    inventory = Object.entries(data).map(([id, item]) => ({ ...item, id }));
-    renderInventory();
-  } catch (error) {
-    console.error("データの取得に失敗しました:", error);
-  }
+    const inventory = Object.entries(data).map(([id, item]) => ({ ...item, id }));
+    renderInventory(inventory);
+  });
 });
 </script>
 </body>
