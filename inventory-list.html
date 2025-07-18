@@ -97,6 +97,7 @@ table {
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    loadInventoryFromFirebase();
 const firebaseConfig = {
     apiKey: "AIzaSyARhO9hECPxXopKRBZrHBAkboqmCxY651i0",
     authDomain: "zaiko-app-54fa6.firebaseapp.com",
@@ -108,32 +109,29 @@ const firebaseConfig = {
   };
   firebase.initializeApp(firebaseConfig);
 
-  function loadInventoryFromFirebase() {
-    firebase.database().ref("inventory").once("value").then(snapshot => {
-      const data = snapshot.val();
-      const tableBody = document.getElementById("inventory-body");
-      tableBody.innerHTML = "";
-      if (!data) return;
-      Object.entries(data).forEach(([key, item]) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td><input type="checkbox" class="select-checkbox" data-id="${key}"></td>
-          <td>${item.user || ""}</td>
-          <td>${item.name || item.maker || ""}</td>
-          <td>${item.category || ""}</td>
-          <td>${item.site || ""}</td>
-          <td>${item.model || ""}</td>
-          <td>${item.qty || 0}</td>
-          <td>${item.date || ""}</td>
-        `;
-        tableBody.appendChild(row);
-      });
+    function loadInventoryFromFirebase() {
+      firebase.database().ref("inventory").once("value").then(snapshot => {
+        const data = snapshot.val();
+        const tableBody = document.getElementById("inventory-body");
+        tableBody.innerHTML = "";
+        if (!data) return;
+        Object.entries(data).forEach(([key, item]) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td><input type="checkbox" class="select-checkbox" data-id="${key}"></td>
+            <td>${item.user || ""}</td>
+            <td>${item.name || item.maker || ""}</td>
+            <td>${item.category || ""}</td>
+            <td>${item.site || ""}</td>
+            <td>${item.model || ""}</td>
+            <td>${item.qty || 0}</td>
+            <td>${item.date || ""}</td>
+          `;
+          tableBody.appendChild(row);
+        });
     });
   }
 
-  window.addEventListener("DOMContentLoaded", () => {
-    loadInventoryFromFirebase();
-  });
 });
 </script>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/></head>
