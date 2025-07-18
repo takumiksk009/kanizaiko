@@ -138,7 +138,12 @@
 <div id="inventoryContainer"></div>
 <script>
     const container = document.getElementById('inventoryContainer');
-    let inventory = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+    let inventory = [];
+firebase.database().ref("inventory").once("value").then(snapshot => {
+  const data = snapshot.val() || {};
+  inventory = Object.entries(data).map(([id, item]) => ({ ...item, id }));
+  renderInventory();
+});
     const usedReports = JSON.parse(localStorage.getItem('usedReports') || '[]');
 
     let editMode = false;
@@ -163,7 +168,8 @@
       
     }
 
-    const usedMap = {};
+    function renderInventory() {
+const usedMap = {};
     usedReports.forEach(r => {
       if (!usedMap[r.itemId]) usedMap[r.itemId] = 0;
       usedMap[r.itemId] += parseInt(r.quantity);
@@ -301,7 +307,9 @@
       
     }
 
-    function updateCategory(id, newCategory) {
+    }
+
+function updateCategory(id, newCategory) {
       inventory = inventory.map(i => i.id === id ? { ...i, category: newCategory } : i);
       
       
