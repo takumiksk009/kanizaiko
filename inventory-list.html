@@ -139,10 +139,15 @@
 <script>
     const container = document.getElementById('inventoryContainer');
     let inventory = [];
-firebase.database().ref("inventory").once("value").then(snapshot => {
-  const data = snapshot.val() || {};
-  inventory = Object.entries(data).map(([id, item]) => ({ ...item, id }));
-  renderInventory();
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const snapshot = await firebase.database().ref("inventory").once("value");
+    const data = snapshot.val() || {};
+    inventory = Object.entries(data).map(([id, item]) => ({ ...item, id }));
+    renderInventory();
+  } catch (error) {
+    console.error("Firebaseデータの取得に失敗しました:", error);
+  }
 });
     const usedReports = JSON.parse(localStorage.getItem('usedReports') || '[]');
 
@@ -320,5 +325,5 @@ function updateCategory(id, newCategory) {
       
     }
   </script>
-<div id="inventory-container"></div></body>
+<div id="inventoryContainer"></div></body>
 </html>
