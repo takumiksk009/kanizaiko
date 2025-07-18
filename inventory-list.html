@@ -91,7 +91,16 @@ table {
       th, td { font-size: 14px; padding: 8px; }
       button { font-size: 13px; padding: 8px 12px; }
     }
-  </style>
+  
+input, select, textarea, button {
+  font-size: 15px !important;
+}
+table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+}
+</style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -136,7 +145,7 @@ const firebaseConfig = {
   });
 });
 </script>
-<meta content="width=device-width, initial-scale=1.0, user-scalable=no" name="viewport"/></head>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/></head>
 <body>
 <div class="nav">
 <a href="zaiko-toroku.html">📥 在庫登録</a>
