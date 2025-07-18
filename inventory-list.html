@@ -100,6 +100,51 @@ table {
   max-width: 100%;
   table-layout: fixed;
 }
+
+@media (max-width: 768px) {
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 800px;
+  }
+
+  select, input {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 800px;
+    width: 100%;
+  }
+
+  th, td {
+    font-size: 14px;
+    padding: 8px;
+    word-break: break-word;
+  }
+
+  select, input {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 8px;
+  }
+}
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -119,7 +164,10 @@ const firebaseConfig = {
 
   function loadInventoryFromFirebase() {
     firebase.database().ref("inventory").once("value").then(snapshot => {
-      const data = snapshot.val();
+  const rawData = snapshot.val();
+  const filtered = Object.entries(rawData || {}).filter(([_, item]) => item.used === false);
+  const data = Object.fromEntries(filtered);
+      // 旧：全件取得
       const tableBody = document.getElementById("inventory-body");
       tableBody.innerHTML = "";
       if (!data) return;
@@ -156,7 +204,7 @@ const firebaseConfig = {
 <button id="editModeButton" onclick="toggleEditMode()">🛠 編集モード</button>
 <button id="deleteSelectedBtn" onclick="deleteSelectedItems()">🗑 選択削除</button>
 <h1>📦 未使用 在庫一覧</h1>
-<div id="inventoryContainer"></div>
+<div id="inventoryContainer" class="table-wrapper"></div>
 <table>
 <thead>
 <tr>
@@ -174,16 +222,8 @@ const firebaseConfig = {
 </table>
 <script>
     const container = document.getElementById('inventoryContainer');
-    
-let inventory = [];
-
-firebase.database().ref("inventory").once("value").then(snapshot => {
-  const data = snapshot.val();
-  inventory = Object.entries(data).map(([id, item]) => ({ id, ...item }));
-  renderInventoryTable();
-});
-
-    const usedReports = []; // localStorage削除
+    let inventory = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+    const usedReports = JSON.parse(localStorage.getItem('usedReports') || '[]');
 
     let editMode = false;
     function toggleEditMode() {
