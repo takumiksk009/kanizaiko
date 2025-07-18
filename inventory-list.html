@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <title>在庫一覧</title>
   <style>
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+table {
+  min-width: 800px;
+  table-layout: fixed;
+  width: 100%;
+}
+
     body { font-family: sans-serif; background: #f9f9f9; padding: 20px; color: #2c3e50; margin-top: 60px; }
     h1, h2 { text-align: center; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 30px; table-layout: fixed; }
@@ -86,7 +96,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script>
-  const firebaseConfig = {
+document.addEventListener("DOMContentLoaded", function() {
+const firebaseConfig = {
     apiKey: "AIzaSyARhO9hECPxXopKRBZrHBAkboqmCxY651i0",
     authDomain: "zaiko-app-54fa6.firebaseapp.com",
     databaseURL: "https://zaiko-app-54fa6-default-rtdb.firebaseio.com",
@@ -123,6 +134,7 @@
   window.addEventListener("DOMContentLoaded", () => {
     loadInventoryFromFirebase();
   });
+});
 </script>
 
 </head>
@@ -154,7 +166,7 @@
     </tr>
   </thead>
   <tbody id="inventory-body"></tbody>
-</table>
+</table></div>
 
 
   <script>
@@ -318,7 +330,7 @@
         date: new Date().toLocaleString()
       });
       
-      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました`);
+      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました！`);
       
     }
 
