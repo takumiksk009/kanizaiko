@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="ja">
-<head>
+<head><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <meta charset="utf-8"/>
 <title>在庫一覧</title>
 <style>
@@ -18,7 +18,7 @@ table {
     body { font-family: sans-serif; background: #f9f9f9; padding: 20px; color: #2c3e50; margin-top: 60px; }
     h1, h2 { text-align: center; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 30px; table-layout: fixed; }
-    th, td { padding: 12px; border: 1px solid #ccc; text-align: center; vertical-align: middle; font-size: 16px; word-wrap: break-word; }
+    th, td { padding: 12px; border: 1px solid #ccc; text-align: center; vertical-align: middle; font-size: 15px; -webkit-text-size-adjust: 100%; word-wrap: break-word; }
     th { background-color: #3498db; color: white; }
     button { padding: 10px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
     .unused { background-color: #e67e22; color: white; }
@@ -70,7 +70,7 @@ table {
     input::placeholder { color: #aaa; font-style: italic; }
     select, input[type="text"] {
       padding: 10px;
-      font-size: 16px;
+      font-size: 15px; -webkit-text-size-adjust: 100%;
       border: 1px solid #ccc;
       border-radius: 6px;
       box-sizing: border-box;
@@ -93,49 +93,42 @@ table {
     }
   </style>
 <!-- Firebase SDK -->
+  function loadInventoryFromFirebase() {
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    loadInventoryFromFirebase();
-const firebaseConfig = {
-    apiKey: "AIzaSyARhO9hECPxXopKRBZrHBAkboqmCxY651i0",
-    authDomain: "zaiko-app-54fa6.firebaseapp.com",
-    databaseURL: "https://zaiko-app-54fa6-default-rtdb.firebaseio.com",
-    projectId: "zaiko-app-54fa6",
-    storageBucket: "zaiko-app-54fa6.appspot.com",
-    messagingSenderId: "615970420186",
-    appId: "1:615970420186:web:8eab3b94d70da28f5bce3"
-  };
-  firebase.initializeApp(firebaseConfig);
 
-  function loadInventoryFromFirebase() {
-    firebase.database().ref("inventory").once("value").then(snapshot => {
-      const data = snapshot.val();
-      const tableBody = document.getElementById("inventory-body");
-      tableBody.innerHTML = "";
-      if (!data) return;
-      Object.entries(data).forEach(([key, item]) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td><input type="checkbox" class="select-checkbox" data-id="${key}"></td>
-          <td>${item.user || ""}</td>
-          <td>${item.name || item.maker || ""}</td>
-          <td>${item.category || ""}</td>
-          <td>${item.site || ""}</td>
-          <td>${item.model || ""}</td>
-          <td>${item.qty || 0}</td>
-          <td>${item.date || ""}</td>
-        `;
-        tableBody.appendChild(row);
-      });
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/></head>
+<body><script>
+function loadInventoryFromFirebase() {
+  firebase.database().ref("inventory").once("value").then(snapshot => {
+    const data = snapshot.val();
+    const tableBody = document.getElementById("inventory-body");
+    tableBody.innerHTML = "";
+    if (!data) return;
+    Object.entries(data).forEach(([key, item]) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="checkbox" class="select-checkbox" data-id="${key}"></td>
+        <td>${item.user || ""}</td>
+        <td>${item.name || item.maker || ""}</td>
+        <td>${item.category || ""}</td>
+        <td>${item.site || ""}</td>
+        <td>${item.model || ""}</td>
+        <td>${item.qty || 0}</td>
+        <td>${item.date || ""}</td>
+      `;
+      tableBody.appendChild(row);
     });
-  }
-
+  });
+}
+document.addEventListener("DOMContentLoaded", function() {
+  loadInventoryFromFirebase();
+});
+</script><script>
+document.addEventListener("DOMContentLoaded", function() {
+  loadInventoryFromFirebase();
 });
 </script>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/></head>
-<body>
 <div class="nav">
 <a href="zaiko-toroku.html">📥 在庫登録</a>
 <a href="inventory-list.html">📋 未使用一覧</a>
