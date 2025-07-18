@@ -1,334 +1,60 @@
+
 <!DOCTYPE html>
-
 <html lang="ja">
-<head><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<meta charset="utf-8"/>
-<title>在庫一覧</title>
-<style>
-.table-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-table {
-  min-width: 800px;
-  table-layout: fixed;
-  width: 100%;
-}
-
-    body { font-family: sans-serif; background: #f9f9f9; padding: 20px; color: #2c3e50; margin-top: 60px; }
-    h1, h2 { text-align: center; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; table-layout: fixed; }
-    th, td { padding: 12px; border: 1px solid #ccc; text-align: center; vertical-align: middle; font-size: 15px; -webkit-text-size-adjust: 100%; word-wrap: break-word; }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <title>在庫一覧（ダミーデータ表示）</title>
+  <style>
+    body { font-family: sans-serif; background: #f4f4f4; padding: 20px; color: #2c3e50; margin-top: 60px; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: center; font-size: 15px; word-wrap: break-word; }
     th { background-color: #3498db; color: white; }
-    button { padding: 10px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
-    .unused { background-color: #e67e22; color: white; }
-    .delete { background-color: #c0392b; color: white; }
-    .select-group { display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap; }
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 6px;
-      width: 100%;
-    }
-    .input-group select,
-    .input-group input {
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .nav {
-      position: fixed; top: 0; left: 0; right: 0; background: #34495e; padding: 10px; text-align: center;
-    }
-    .nav a {
-      margin: 0 10px; color: white; text-decoration: none; font-weight: bold;
-    }
-    #editModeButton {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: #2c3e50;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      z-index: 1001;
-    }
-    #deleteSelectedBtn {
-      display: none;
-      position: fixed;
-      top: 60px;
-      right: 10px;
-      background: #c0392b;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      z-index: 1001;
-    }
-    input::placeholder { color: #aaa; font-style: italic; }
-    select, input[type="text"] {
-      padding: 10px;
-      font-size: 15px; -webkit-text-size-adjust: 100%;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    .manage-label {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .manage-label span {
-      font-weight: bold;
-    }
-    .manage-label input {
-      width: 60px;
-      text-align: center;
-    }
-    @media (max-width: 600px) {
-      th, td { font-size: 14px; padding: 8px; }
-      button { font-size: 13px; padding: 8px 12px; }
-    }
+    input[type="checkbox"] { transform: scale(1.2); }
   </style>
-<!-- Firebase SDK -->
-  function loadInventoryFromFirebase() {
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+  <h1>在庫一覧（ダミー）</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>選択</th>
+        <th>登録者</th>
+        <th>メーカー</th>
+        <th>カテゴリ</th>
+        <th>現場名</th>
+        <th>型式</th>
+        <th>個数</th>
+        <th>注文日</th>
+      </tr>
+    </thead>
+    <tbody id="inventory-body">
+    </tbody>
+  </table>
 
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/></head>
-<body><script>
-function loadInventoryFromFirebase() {
-  firebase.database().ref("inventory").once("value").then(snapshot => {
-    const data = snapshot.val();
-    const tableBody = document.getElementById("inventory-body");
-    tableBody.innerHTML = "";
-    if (!data) return;
-    Object.entries(data).forEach(([key, item]) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><input type="checkbox" class="select-checkbox" data-id="${key}"></td>
-        <td>${item.user || ""}</td>
-        <td>${item.name || item.maker || ""}</td>
-        <td>${item.category || ""}</td>
-        <td>${item.site || ""}</td>
-        <td>${item.model || ""}</td>
-        <td>${item.qty || 0}</td>
-        <td>${item.date || ""}</td>
-      `;
-      tableBody.appendChild(row);
-    });
-  });
-}
-document.addEventListener("DOMContentLoaded", function() {
-  loadInventoryFromFirebase();
-});
-</script><script>
-document.addEventListener("DOMContentLoaded", function() {
-  loadInventoryFromFirebase();
-});
-</script>
-<div class="nav">
-<a href="zaiko-toroku.html">📥 在庫登録</a>
-<a href="inventory-list.html">📋 未使用一覧</a>
-<a href="inventory-used.html">✔ 使用済み一覧</a>
-<a href="report.html">📜 使用履歴</a>
-</div>
-<button id="editModeButton" onclick="toggleEditMode()">🛠 編集モード</button>
-<button id="deleteSelectedBtn" onclick="deleteSelectedItems()">🗑 選択削除</button>
-<h1>📦 未使用 在庫一覧</h1>
-<div id="inventoryContainer"></div>
-<table>
-<thead>
-<tr>
-<th>チェック</th>
-<th>登録者</th>
-<th>メーカー</th>
-<th>カテゴリ</th>
-<th>現場名</th>
-<th>型式</th>
-<th>個数</th>
-<th>仕入日</th>
-</tr>
-</thead>
-<tbody id="inventory-body"></tbody>
-</table>
-<script>
-    const container = document.getElementById('inventoryContainer');
-    let inventory = JSON.parse(localStorage.getItem('inventoryData') || '[]');
-    const usedReports = JSON.parse(localStorage.getItem('usedReports') || '[]');
-
-    let editMode = false;
-    function toggleEditMode() {
-      editMode = !editMode;
-      document.querySelectorAll('.delete-checkbox').forEach(cb => cb.style.display = editMode ? 'inline-block' : 'none');
-      document.getElementById('deleteSelectedBtn').style.display = editMode ? 'inline-block' : 'none';
-      document.getElementById('editModeButton').textContent = editMode ? '✅ 編集終了' : '🛠 編集モード';
-    }
-
-    function deleteSelectedItems() {
-      const checkedBoxes = document.querySelectorAll('.delete-checkbox input:checked');
-      if (checkedBoxes.length === 0) {
-        alert("削除する在庫を選んでください。");
-        return;
-      }
-      if (!confirm("選択された在庫を削除しますか？")) return;
-
-      const idsToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
-      inventory = inventory.filter(i => !idsToDelete.includes(i.id));
-      
-      
-    }
-
-    const usedMap = {};
-    usedReports.forEach(r => {
-      if (!usedMap[r.itemId]) usedMap[r.itemId] = 0;
-      usedMap[r.itemId] += parseInt(r.quantity);
-    });
-
-    const remainingItems = inventory.map(item => {
-      const used = usedMap[item.id] || 0;
-      const remaining = item.quantity - used;
-      return { ...item, remaining };
-    }).filter(item => item.remaining > 0);
-
-    const categoryOptions = ["", "ガス給湯器", "ガス瞬間湯沸器", "リモコン", "配管カバー"];
-
-    const grouped = {};
-    remainingItems.forEach(item => {
-      const cat = item.category || "未分類";
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(item);
-    });
-
-    function getPrefix(category) {
-      if (category.includes("給湯器")) return "キ-";
-      if (category.includes("湯沸器")) return "ユ-";
-      if (category.includes("リモコン")) return "リ-";
-      return "-";
-    }
-
-    Object.keys(grouped).forEach(category => {
-      const h2 = document.createElement('h2');
-      h2.textContent = `📁 ${category}`;
-      container.appendChild(h2);
-
-      const table = document.createElement('table');
-      table.innerHTML = `
-        <colgroup>
-          <col style="width: 10%">
-          <col style="width: 20%">
-          <col style="width: 15%">
-          <col style="width: 15%">
-          <col style="width: 10%">
-          <col style="width: 15%">
-          <col style="width: 15%">
-        </colgroup>
-        <thead>
-          <tr>
-            <th>登録者</th>
-            <th>カテゴリ＆現場名</th>
-            <th>商品名</th>
-            <th>型式</th>
-            <th>残数</th>
-            <th>仕入れ日</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${grouped[category].map(item => {
-            const selectorId = `userSelect-${item.id}`;
-            const qtyId = `qtySelect-${item.id}`;
-            const manageId = `manageId-${item.id}`;
-            const catId = `category-${item.id}`;
-            const siteId = `siteInput-${item.id}`;
-            const prefix = getPrefix(item.category || "");
-            const optionsHtml = categoryOptions.map(opt => `<option value="${opt}" ${item.category === opt ? 'selected' : ''}>${opt}</option>`).join('');
-
-            return `
-              <tr>
-                <td>${item.user}</td>
-                <td>
-                  <div class="input-group">
-                    <select id="${catId}" onchange="updateCategory(${item.id}, this.value)">${optionsHtml}</select>
-                    <input type="text" id="${siteId}" placeholder="(現場名)" value="${item.site || ''}" onchange="updateSite(${item.id}, this.value)" />
-                  </div>
-                </td>
-                <td>${item.name}</td>
-                <td>${item.model}</td>
-                <td>${item.remaining}</td>
-                <td>${item.date}</td>
-                <td>
-                  <div class="select-group">
-                    <select id="${selectorId}">
-                      <option value="">使用者選択</option>
-                      <option value="阿部">阿部</option>
-                      <option value="鈴木">鈴木</option>
-                      <option value="紺野">紺野</option>
-                      <option value="亀岡">亀岡</option>
-                      <option value="大槻">大槻</option>
-                      <option value="青田">青田</option>
-                      <option value="菊田">菊田</option>
-                      <option value="高橋">高橋</option>
-                      <option value="佐藤">佐藤</option>
-                      <option value="今泉">今泉</option>
-                    </select>
-                    <select id="${qtyId}">
-                      ${[...Array(item.remaining).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
-                    </select>
-                    <label class="manage-label">
-                      <span>${prefix}</span><input type="text" id="${manageId}" placeholder="番号" />
-                    </label>
-                    <button class="unused" onclick="reportUsed(${item.id}, '${selectorId}', '${qtyId}', '${manageId}', '${prefix}')">使用する</button>
-                    <span class="delete-checkbox" style="display:none"><input type="checkbox" value="${item.id}"></span>
-                  </div>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      `;
-      container.appendChild(table);
-    });
-
-    function reportUsed(id, selectorId, qtyId, manageId, prefix) {
-      const selectedUser = document.getElementById(selectorId).value;
-      const selectedQty = parseInt(document.getElementById(qtyId).value);
-      const manageCode = document.getElementById(manageId).value.trim();
-
-      if (!selectedUser || !selectedQty) {
-        alert("使用者と個数を選択してください。");
-        return;
-      }
-
-      const fullManageCode = prefix + manageCode;
-      const item = inventory.find(i => i.id === id);
-      const usedLogs = JSON.parse(localStorage.getItem('usedReports') || '[]');
-      usedLogs.push({
-        itemId: id,
-        itemName: item.name,
-        model: item.model,
-        user: selectedUser,
-        quantity: selectedQty,
-        manageCode: fullManageCode,
-        date: new Date().toLocaleString()
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const dummyData = [
+        { user: "山田", maker: "リンナイ", category: "給湯器", site: "福島市A", model: "RUF-E2405SAW", qty: 2, date: "2025-07-18" },
+        { user: "佐藤", maker: "パロマ", category: "ガスコンロ", site: "福島市B", model: "PA-360WHA", qty: 1, date: "2025-07-17" }
+      ];
+      const tableBody = document.getElementById("inventory-body");
+      dummyData.forEach((item, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><input type="checkbox" class="select-checkbox" data-id="dummy-${index}"></td>
+          <td>${item.user}</td>
+          <td>${item.maker}</td>
+          <td>${item.category}</td>
+          <td>${item.site}</td>
+          <td>${item.model}</td>
+          <td>${item.qty}</td>
+          <td>${item.date}</td>
+        `;
+        tableBody.appendChild(row);
       });
-      
-      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました`);
-      
-    }
-
-    function updateCategory(id, newCategory) {
-      inventory = inventory.map(i => i.id === id ? { ...i, category: newCategory } : i);
-      
-      
-    }
-
-    function updateSite(id, newSite) {
-      inventory = inventory.map(i => i.id === id ? { ...i, site: newSite } : i);
-      
-    }
+    });
   </script>
 </body>
 </html>
