@@ -374,7 +374,9 @@ form.addEventListener('submit', function(e) {
       model: models[i],
       qty: qtys[i]
     };
-    db.ref("inventory").push(item);
+    const newRef = db.ref("inventory").push();
+    item.id = newRef.key;
+    newRef.set(item);
   }
 
   alert("登録を受け付けました！");
