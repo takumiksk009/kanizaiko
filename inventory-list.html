@@ -174,137 +174,133 @@ firebase.database().ref("usedReports").once("value").then(snapshot => {
 
     
 function renderInventory() {
-  const usedMap = {};
-  usedReports.forEach(r => {
-    if (!usedMap[r.itemId]) usedMap[r.itemId] = 0;
-    usedMap[r.itemId] += parseInt(r.quantity);
-  });
+    const usedMap = {};
+    usedReports.forEach(r => {
+      if (!usedMap[r.itemId]) usedMap[r.itemId] = 0;
+      usedMap[r.itemId] += parseInt(r.quantity);
+    });
+    
+    }).map(item => item).filter(item => item.remaining > 0);
 
-  const remainingItems = inventory.map(item => {
-    const usedQty = usedMap[item.id] || 0;
-    const remaining = item.qty - usedQty;
-    return {...item, remaining};
-  }).filter(item => item.remaining > 0);
+    const grouped = {};
+    remainingItems.forEach(item => {
+      const cat = item.category || "未分類";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(item);
+    });
 
-  const grouped = {};
-  remainingItems.forEach(item => {
-    const cat = item.category || "未分類";
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(item);
-  });
+if (!container) return;
+    Object.keys(grouped).forEach(category => {
+      const h2 = document.createElement('h2');
+      h2.textContent = `📁 ${category}`;
+      container.appendChild(h2);
 
-  if (!container) return;
-  container.innerHTML = ''; // 初期化
+      const table = document.createElement('table');
+      table.innerHTML = `
+        <colgroup>
+          <col style="width: 10%">
+          <col style="width: 20%">
+          <col style="width: 15%">
+          <col style="width: 15%">
+          <col style="width: 10%">
+          <col style="width: 15%">
+          <col style="width: 15%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>登録者</th>
+            <th>カテゴリ＆現場名</th>
+            <th>商品名</th>
+            <th>型式</th>
+            <th>残数</th>
+            <th>仕入れ日</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${grouped[category].map(item => {
+            const selectorId = `userSelect-${item.id}`;
+            const qtyId = `qtySelect-${item.id}`;
+            const manageId = `manageId-${item.id}`;
+            const catId = `category-${item.id}`;
+            const siteId = `siteInput-${item.id}`;
+            const prefix = getPrefix(item.category || "");
+            const optionsHtml = categoryOptions.map(opt => `<option value="${opt}" ${item.category === opt ? 'selected' : ''}>${opt}</option>`).join('');
 
-  Object.keys(grouped).forEach(category => {
-    const h2 = document.createElement('h2');
-    h2.textContent = `📁 ${category}`;
-    container.appendChild(h2);
-
-    const table = document.createElement('table');
-    table.innerHTML = `
-      <colgroup>
-        <col style="width: 10%">
-        <col style="width: 20%">
-        <col style="width: 15%">
-        <col style="width: 15%">
-        <col style="width: 10%">
-        <col style="width: 15%">
-        <col style="width: 15%">
-      </colgroup>
-      <thead>
-        <tr>
-          <th>登録者</th>
-          <th>カテゴリ＆現場名</th>
-          <th>商品名</th>
-          <th>型式</th>
-          <th>残数</th>
-          <th>仕入れ日</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${grouped[category].map(item => {
-          const selectorId = `userSelect-${item.id}`;
-          const qtyId = `qtySelect-${item.id}`;
-          const manageId = `manageId-${item.id}`;
-          const catId = `category-${item.id}`;
-          const siteId = `siteInput-${item.id}`;
-          const prefix = getPrefix(item.category || "");
-          const optionsHtml = categoryOptions.map(opt => `<option value="${opt}" ${item.category === opt ? 'selected' : ''}>${opt}</option>`).join('');
-
-          return `
-            <tr>
-              <td>${item.user}</td>
-              <td>
-                <div class="input-group">
-                  <select id="${catId}" onchange="updateCategory(${item.id}, this.value)">${optionsHtml}</select>
-                  <input type="text" id="${siteId}" placeholder="(現場名)" value="${item.site || ''}" onchange="updateSite(${item.id}, this.value)" />
-                </div>
-              </td>
-              <td>${item.name}</td>
-              <td>${item.model}</td>
-              <td>${item.remaining}</td>
-              <td>${item.date}</td>
-              <td>
-                <div class="select-group">
-                  <select id="${selectorId}">
-                    <option value="">使用者選択</option>
-                    <option value="阿部">阿部</option>
-                    <option value="鈴木">鈴木</option>
-                    <option value="紺野">紺野</option>
-                    <option value="亀岡">亀岡</option>
-                    <option value="大槻">大槻</option>
-                    <option value="青田">青田</option>
-                    <option value="菊田">菊田</option>
-                    <option value="高橋">高橋</option>
-                    <option value="佐藤">佐藤</option>
-                    <option value="今泉">今泉</option>
-                  </select>
-                  <select id="${qtyId}">
-                    ${[...Array(item.remaining).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
-                  </select>
-                  <label class="manage-label">
-                    <span>${prefix}</span><input type="text" id="${manageId}" placeholder="番号" />
-                  </label>
-                  <button class="unused" onclick="reportUsed(${item.id}, '${selectorId}', '${qtyId}', '${manageId}', '${prefix}')">使用する</button>
-                  <span class="delete-checkbox" style="display:none"><input type="checkbox" value="${item.id}"></span>
-                </div>
-              </td>
-            </tr>
-          `;
-        }).join('')}
-      </tbody>
-    `;
-    container.appendChild(table);
-  });
-}
+            return `
+              <tr>
+                <td>${item.user}</td>
+                <td>
+                  <div class="input-group">
+                    <select id="${catId}" onchange="updateCategory(${item.id}, this.value)">${optionsHtml}</select>
+                    <input type="text" id="${siteId}" placeholder="(現場名)" value="${item.site || ''}" onchange="updateSite(${item.id}, this.value)" />
+                  </div>
+                </td>
+                <td>${item.name}</td>
+                <td>${item.model}</td>
+                <td>${item.remaining}</td>
+                <td>${item.date}</td>
+                <td>
+                  <div class="select-group">
+                    <select id="${selectorId}">
+                      <option value="">使用者選択</option>
+                      <option value="阿部">阿部</option>
+                      <option value="鈴木">鈴木</option>
+                      <option value="紺野">紺野</option>
+                      <option value="亀岡">亀岡</option>
+                      <option value="大槻">大槻</option>
+                      <option value="青田">青田</option>
+                      <option value="菊田">菊田</option>
+                      <option value="高橋">高橋</option>
+                      <option value="佐藤">佐藤</option>
+                      <option value="今泉">今泉</option>
+                    </select>
+                    <select id="${qtyId}">
+                      ${[...Array(item.remaining).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+                    </select>
+                    <label class="manage-label">
+                      <span>${prefix}</span><input type="text" id="${manageId}" placeholder="番号" />
+                    </label>
+                    <button class="unused" onclick="reportUsed(${item.id}, '${selectorId}', '${qtyId}', '${manageId}', '${prefix}')">使用する</button>
+                    <span class="delete-checkbox" style="display:none"><input type="checkbox" value="${item.id}"></span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      `;
+      container.appendChild(table);
+    });
 
     function reportUsed(id, selectorId, qtyId, manageId, prefix) {
-  const selectedUser = document.getElementById(selectorId).value;
-  const selectedQty = parseInt(document.getElementById(qtyId).value);
-  const manageCode = document.getElementById(manageId).value.trim();
+      const selectedUser = document.getElementById(selectorId).value;
+      const selectedQty = parseInt(document.getElementById(qtyId).value);
+      const manageCode = document.getElementById(manageId).value.trim();
 
-  if (!selectedUser || !selectedQty) {
-    alert("使用者と個数を選択してください。");
-    return;
-  }
+      if (!selectedUser || !selectedQty) {
+        alert("使用者と個数を選択してください。");
+        return;
+      }
 
-  const fullManageCode = prefix + manageCode;
-  const item = inventory.find(i => i.id === id);
-
-  firebase.database().ref("usedReports").push({
-    itemId: id,
-    itemName: item.name,
-    model: item.model,
-    user: selectedUser,
-    quantity: selectedQty,
-    manageCode: fullManageCode,
-    date: new Date().toLocaleString()
-  });
-
-  alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました！`);
-}
+      const fullManageCode = prefix + manageCode;
+      const item = inventory.find(i => i.id === id);
+      // 
+      let ;
+      if (!Array.isArray())  = [];
+      .push({
+        itemId: id,
+        itemName: item.name,
+        model: item.model,
+        user: selectedUser,
+        quantity: selectedQty,
+        manageCode: fullManageCode,
+        date: new Date().toLocaleString()
+      });
+      
+      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました！`);
+      
+    }
 
     function updateCategory(id, newCategory) {
       inventory = inventory.map(i => i.id === id ? { ...i, category: newCategory } : i);
