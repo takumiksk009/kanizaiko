@@ -274,33 +274,30 @@ if (!container) return;
     });
 
     function reportUsed(id, selectorId, qtyId, manageId, prefix) {
-      const selectedUser = document.getElementById(selectorId).value;
-      const selectedQty = parseInt(document.getElementById(qtyId).value);
-      const manageCode = document.getElementById(manageId).value.trim();
+  const selectedUser = document.getElementById(selectorId).value;
+  const selectedQty = parseInt(document.getElementById(qtyId).value);
+  const manageCode = document.getElementById(manageId).value.trim();
 
-      if (!selectedUser || !selectedQty) {
-        alert("使用者と個数を選択してください。");
-        return;
-      }
+  if (!selectedUser || !selectedQty) {
+    alert("使用者と個数を選択してください。");
+    return;
+  }
 
-      const fullManageCode = prefix + manageCode;
-      const item = inventory.find(i => i.id === id);
-      // 
-      let ;
-      if (!Array.isArray())  = [];
-      .push({
-        itemId: id,
-        itemName: item.name,
-        model: item.model,
-        user: selectedUser,
-        quantity: selectedQty,
-        manageCode: fullManageCode,
-        date: new Date().toLocaleString()
-      });
-      
-      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました！`);
-      
-    }
+  const fullManageCode = prefix + manageCode;
+  const item = inventory.find(i => i.id === id);
+
+  firebase.database().ref("usedReports").push({
+    itemId: id,
+    itemName: item.name,
+    model: item.model,
+    user: selectedUser,
+    quantity: selectedQty,
+    manageCode: fullManageCode,
+    date: new Date().toLocaleString()
+  });
+
+  alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました！`);
+}
 
     function updateCategory(id, newCategory) {
       inventory = inventory.map(i => i.id === id ? { ...i, category: newCategory } : i);
