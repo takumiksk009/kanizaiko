@@ -97,8 +97,32 @@
   };
   firebase.initializeApp(firebaseConfig);
 
-  
-  
+  function loadInventoryFromFirebase() {
+    firebase.database().ref("inventory").once("value").then(snapshot => {
+      const data = snapshot.val();
+      const tableBody = document.getElementById("inventory-body");
+      tableBody.innerHTML = "";
+      if (!data) return;
+      Object.entries(data).forEach(([key, item]) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><input type="checkbox" class="select-checkbox" data-id="${key}"></td>
+          <td>${item.user || ""}</td>
+          <td>${item.name || item.maker || ""}</td>
+          <td>${item.category || ""}</td>
+          <td>${item.site || ""}</td>
+          <td>${item.model || ""}</td>
+          <td>${item.qty || 0}</td>
+          <td>${item.date || ""}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    });
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    loadInventoryFromFirebase();
+  });
 </script>
 </head>
 <body>
@@ -114,22 +138,8 @@
 <div id="inventoryContainer"></div>
 <script>
     const container = document.getElementById('inventoryContainer');
-    let inventory = [];
-    let usedReports = [];
-
-    
-
-firebase.database().ref("usedReports").once("value").then(snapshot => {
-  usedReports = snapshot.val() ? Object.values(snapshot.val()) : [];
-  firebase.database().ref("inventory").once("value").then(snapshot => {
-    inventory = snapshot.val() ? Object.values(snapshot.val()) : [];
-    renderInventory();
-  });
-
-  
-});
-
-    
+    let inventory = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+    const usedReports = JSON.parse(localStorage.getItem('usedReports') || '[]');
 
     let editMode = false;
     function toggleEditMode() {
@@ -147,14 +157,23 @@ firebase.database().ref("usedReports").once("value").then(snapshot => {
       }
       if (!confirm("選択された在庫を削除しますか？")) return;
 
-      const idsToDelete = Array.from(checkedBoxes).map(cb => cb.value);
+      const idsToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
       inventory = inventory.filter(i => !idsToDelete.includes(i.id));
       
       
     }
 
-    
-    }).map(item => item).filter(item => item.remaining > 0);
+    const usedMap = {};
+    usedReports.forEach(r => {
+      if (!usedMap[r.itemId]) usedMap[r.itemId] = 0;
+      usedMap[r.itemId] += parseInt(r.quantity);
+    });
+
+    const remainingItems = inventory.map(item => {
+      const used = usedMap[item.id] || 0;
+      const remaining = item.quantity - used;
+      return { ...item, remaining };
+    }).filter(item => item.remaining > 0);
 
     const categoryOptions = ["", "ガス給湯器", "ガス瞬間湯沸器", "リモコン", "配管カバー"];
 
@@ -172,24 +191,6 @@ firebase.database().ref("usedReports").once("value").then(snapshot => {
       return "-";
     }
 
-    
-function renderInventory() {
-    const usedMap = {};
-    usedReports.forEach(r => {
-      if (!usedMap[r.itemId]) usedMap[r.itemId] = 0;
-      usedMap[r.itemId] += parseInt(r.quantity);
-    });
-    
-    }).map(item => item).filter(item => item.remaining > 0);
-
-    const grouped = {};
-    remainingItems.forEach(item => {
-      const cat = item.category || "未分類";
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(item);
-    });
-
-if (!container) return;
     Object.keys(grouped).forEach(category => {
       const h2 = document.createElement('h2');
       h2.textContent = `📁 ${category}`;
@@ -285,10 +286,8 @@ if (!container) return;
 
       const fullManageCode = prefix + manageCode;
       const item = inventory.find(i => i.id === id);
-      // 
-      let ;
-      if (!Array.isArray())  = [];
-      .push({
+      const usedLogs = JSON.parse(localStorage.getItem('usedReports') || '[]');
+      usedLogs.push({
         itemId: id,
         itemName: item.name,
         model: item.model,
@@ -298,7 +297,7 @@ if (!container) return;
         date: new Date().toLocaleString()
       });
       
-      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました`);
+      alert(`「${item.name}」を ${selectedQty} 個（${fullManageCode}）、${selectedUser} さんが使用しました！`);
       
     }
 
@@ -314,17 +313,4 @@ if (!container) return;
     }
   </script>
 <div id="inventory-container"></div></body>
-
-<!-- ✅ localStorage/usedLogs: NOT FOUND -->
-<!-- ✅ reportUsed() includes Firebase push -->
-<!-- ❌ コメント不足 -->
-<!-- ✅ HTML structure complete (</html> found) -->
-<!-- ✅ 'remaining' usage found -->
 </html>
-<!-- ✅ localStorage / usedLogs removed -->
-<!-- ✅ Firebase push found -->
-<!-- ✅ Comment 'previous/now' found -->
-<!-- ✅ </html> tag exists -->
-<!-- ✅ 'remaining' variable used -->
-<!-- ✅ .filter(item => item.remaining > 0) safe usage -->
-<!-- ✅ reportUsed() syntax OK -->
